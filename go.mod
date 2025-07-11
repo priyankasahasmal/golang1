@@ -2,17 +2,18 @@ module github.com/priyankasahasmal/golang1
 
 go 1.24.4
 
-require github.com/gofiber/fiber/v2 v2.52.8
+require (
+	github.com/go-jet/jet v2.3.0+incompatible
+	github.com/gofiber/fiber/v2 v2.52.8
+	github.com/lib/pq v1.10.9
+)
 
 require (
-	filippo.io/edwards25519 v1.1.0 // indirect
 	github.com/andybalholm/brotli v1.1.0 // indirect
 	github.com/davecgh/go-spew v1.1.1 // indirect
-	github.com/go-jet/jet v2.3.0+incompatible // indirect
-	github.com/go-sql-driver/mysql v1.9.3 // indirect
+	github.com/google/go-cmp v0.7.0 // indirect
 	github.com/google/uuid v1.6.0 // indirect
 	github.com/klauspost/compress v1.17.9 // indirect
-	github.com/lib/pq v1.10.9 // indirect
 	github.com/mattn/go-colorable v0.1.13 // indirect
 	github.com/mattn/go-isatty v0.0.20 // indirect
 	github.com/mattn/go-runewidth v0.0.16 // indirect

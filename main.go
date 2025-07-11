@@ -82,12 +82,12 @@ func main() {
 
 	app := fiber.New()
 
-	// Root route to confirm deployment
+	// Root route
 	app.Get("/", func(c *fiber.Ctx) error {
 		return c.SendString("✅ Go app is successfully deployed on Render!")
 	})
 
-	// Endpoint to fetch users
+	// Users list
 	app.Get("/users", func(c *fiber.Ctx) error {
 		users, err := FetchAllUsers()
 		if err != nil {
@@ -96,11 +96,79 @@ func main() {
 		return c.JSON(users)
 	})
 
+	// Sign-in route
+	app.Post("/signin", SignInWeb)
+
+	// ✅ POST /get-userid route
+	app.Post("/get-userid", func(c *fiber.Ctx) error {
+		var req struct {
+			Email string `json:"email"`
+		}
+
+		if err := c.BodyParser(&req); err != nil {
+			return c.Status(400).SendString("❌ Invalid JSON")
+		}
+
+		userID, err := FetchUserIDFromEmailID(req.Email)
+		if err != nil {
+			return c.Status(500).SendString("❌ " + err.Error())
+		}
+
+		return c.JSON(fiber.Map{
+			"email":  req.Email,
+			"userid": userID,
+		})
+	})
+
+	// Start server
 	port := os.Getenv("PORT")
 	if port == "" {
 		port = "3000"
 	}
-
 	log.Printf("🚀 Server running on port %s", port)
-	log.Fatal(app.Listen(":" + port))
+	log.Fatal(app.Listen("0.0.0.0:" + port))
+}
+
+type SignInRequest struct {
+	Email    string `json:"email"`
+	Password string `json:"password"`
+}
+
+func SignInWeb(c *fiber.Ctx) error {
+	signInRequestObject := SignInRequest{}
+
+	// Parse request body
+	if err := c.BodyParser(&signInRequestObject); err != nil {
+		return c.Status(400).JSON(fiber.Map{
+			"error": "Invalid request format",
+		})
+	}
+
+	// Fetch user ID from DB
+	userID, err := FetchUserIDFromEmailID(signInRequestObject.Email)
+	if err != nil {
+		log.Printf("Error fetching user: %v", err)
+		return c.Status(404).JSON(fiber.Map{
+			"error": "User not found",
+		})
+	}
+
+	// Return success response
+	return c.JSON(fiber.Map{
+		"message": "User found",
+		"userId":  userID,
+		"email":   signInRequestObject.Email,
+	})
+}
+
+func FetchUserIDFromEmailID(email string) (int, error) {
+	query := `SELECT userid FROM users WHERE email = $1`
+	row := DB.QueryRow(query, email)
+
+	var userID int
+	err := row.Scan(&userID)
+	if err != nil {
+		return 0, err
+	}
+	return userID, nil
 }
